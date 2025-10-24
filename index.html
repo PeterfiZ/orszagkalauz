@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A világ országai</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4f46e5">
+    <style>
+        .flag-option {
+            transition: all 0.2s ease;
+        }
+        .flag-option:hover {
+            transform: scale(1.05);
+        }
+        .country-card {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Fejléc -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-indigo-800 mb-2">🌍 A világ országai</h1>
+            <p class="text-gray-600">Fedezd fel a világ országait név vagy zászló alapján</p>
+        </div>
+
+        <!-- Keresési módok -->
+        <div class="max-w-4xl mx-auto mb-8">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <button id="nameSearchBtn" class="bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
+                        📝 Keresés név alapján
+                    </button>
+                    <button id="flagSearchBtn" class="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors">
+                        🏳️ Keresés zászló alapján
+                    </button>
+                    <button id="continentSearchBtn" class="bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors">
+                        🌍 Keresés kontinens szerint
+                    </button>
+                </div>
+
+                <!-- Név alapú keresés -->
+                <div id="nameSearch" class="search-mode">
+                    <div class="relative">
+                        <input type="text" id="countryInput" placeholder="Írd be az ország nevét..." 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                        <button id="searchBtn" class="absolute right-2 top-2 bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors">
+                            🔍
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Zászló alapú keresés -->
+                <div id="flagSearch" class="search-mode hidden">
+                    <div id="flagResult" class="mb-8"></div>
+                    <p class="text-gray-700 mb-4 font-semibold">Válassz egy zászlót:</p>
+                    <div id="flagGrid" class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                        <!-- Zászlók itt jelennek meg -->
+                    </div>
+                </div>
+
+                <!-- Kontinens alapú keresés -->
+                <div id="continentSearch" class="search-mode hidden">
+                    <p class="text-gray-700 mb-4 font-semibold">Válassz egy kontinenst:</p>
+                    <div id="continentGrid" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <!-- Kontinensek itt jelennek meg -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Eredmény megjelenítése -->
+        <div id="result" class="max-w-4xl mx-auto"></div>
+    </div>
+
+    <script src="./continents.js"></script>
+    <script src="./countries.js"></script>
+    <script>
+        let currentView = 'grid'; // 'grid' vagy 'list'
+        // DOM elemek
+        const nameSearchBtn = document.getElementById('nameSearchBtn');
+        const flagSearchBtn = document.getElementById('flagSearchBtn');
+        const continentSearchBtn = document.getElementById('continentSearchBtn');
+        const nameSearch = document.getElementById('nameSearch');
+        const flagSearch = document.getElementById('flagSearch');
+        const flagResult = document.getElementById('flagResult');
+        const continentSearch = document.getElementById('continentSearch');
+        const countryInput = document.getElementById('countryInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const flagGrid = document.getElementById('flagGrid');
+        const continentGrid = document.getElementById('continentGrid');
+        const result = document.getElementById('result');
+
+        // Keresési mód váltás
+        nameSearchBtn.addEventListener('click', () => {
+            showSearchMode('name');
+        });
+
+        flagSearchBtn.addEventListener('click', () => {
+            showSearchMode('flag');
+            generateFlagGrid();
+        });
+
+        continentSearchBtn.addEventListener('click', () => {
+            showSearchMode('continent');
+            generateContinentGrid();
+        });
+
+        function showSearchMode(mode) {
+            // Minden keresési mód elrejtése
+            nameSearch.classList.add('hidden');
+            flagSearch.classList.add('hidden');
+            flagResult.innerHTML = '';
+            continentSearch.classList.add('hidden');
+            
+            // Gombok alaphelyzetbe
+            nameSearchBtn.classList.remove('bg-indigo-600');
+            nameSearchBtn.classList.add('bg-gray-400');
+            flagSearchBtn.classList.remove('bg-green-600');
+            flagSearchBtn.classList.add('bg-gray-400');
+            continentSearchBtn.classList.remove('bg-purple-600');
+            continentSearchBtn.classList.add('bg-gray-400');
+            
+            // Aktív mód megjelenítése
+            if (mode === 'name') {
+                nameSearch.classList.remove('hidden');
+                nameSearchBtn.classList.add('bg-indigo-600');
+                nameSearchBtn.classList.remove('bg-gray-400');
+            } else if (mode === 'flag') {
+                flagSearch.classList.remove('hidden');
+                flagSearchBtn.classList.add('bg-green-600');
+                flagSearchBtn.classList.remove('bg-gray-400');
+            } else if (mode === 'continent') {
+                continentSearch.classList.remove('hidden');
+                continentSearchBtn.classList.add('bg-purple-600');
+                continentSearchBtn.classList.remove('bg-gray-400');
+            }
+            
+            result.innerHTML = '';
+        }
+
+        // Zászló rács generálása
+        function generateFlagGrid() {
+            flagGrid.innerHTML = '';
+            const sortedCountries = Object.entries(countries).sort(([, a], [, b]) => 
+                a.name.localeCompare(b.name, 'hu')
+            );
+
+            sortedCountries.forEach(([countryKey, country]) => {
+                const flagDiv = document.createElement('div');
+                flagDiv.className = 'flag-option bg-white p-3 rounded-lg shadow-md cursor-pointer text-center hover:shadow-lg border-2 border-transparent hover:border-indigo-300 transition-all';
+                flagDiv.innerHTML = `
+                    <div class="mb-2">
+                        ${country.officialFlag ? 
+                            `<img src="${country.officialFlag}" alt="${country.name} zászlaja" class="w-16 h-10 mx-auto rounded border object-cover" onerror="this.src=''; this.alt='Image failed to load'; this.style.display='none'; this.nextElementSibling.style.display='block';">
+                             <div class="text-3xl hidden">${country.flag}</div>` 
+                            : `<div class="text-3xl">${country.flag}</div>`
+                        }
+                    </div>
+                    <div class="text-xs font-medium text-gray-800 mb-1">${country.name}</div>
+                    <div class="text-xs text-gray-500">${country.code}</div>
+                `;
+                flagDiv.addEventListener('click', () => displayCountry(countryKey));
+                flagGrid.appendChild(flagDiv);
+            });
+        }
+
+        // Kontinens rács generálása
+        function generateContinentGrid() {
+            continentGrid.innerHTML = '';
+            Object.values(continents).forEach(continent => {
+                const continentDiv = document.createElement('div');
+                continentDiv.className = `bg-${continent.color}-50 border-2 border-${continent.color}-200 p-6 rounded-lg cursor-pointer hover:shadow-lg transition-all hover:border-${continent.color}-400`;
+                continentDiv.innerHTML = `
+                    <div class="text-center">
+                        <div class="text-6xl mb-3">${continent.emoji}</div>
+                        <h3 class="text-xl font-bold text-${continent.color}-800 mb-2">${continent.name}</h3>
+                        <p class="text-${continent.color}-600 text-sm mb-4">${continent.description}</p>
+                        <div class="text-${continent.color}-700 font-medium">
+                            ${Object.values(countries).filter(c => c.continent === continent.name).length} ország
+                        </div>
+                    </div>
+                `;
+                continentDiv.addEventListener('click', () => displayContinentCountries(continent.name));
+                continentGrid.appendChild(continentDiv);
+            });
+        }
+
+        // Ország keresése név alapján
+        function searchCountry() {
+            const searchTerm = countryInput.value.toLowerCase().trim();
+            if (searchTerm === '') {
+                result.innerHTML = '<div class="text-center text-gray-500 py-8">Kérlek, írj be egy ország nevét!</div>';
+                return;
+            }
+
+            const foundCountries = Object.entries(countries).filter(([key, country]) => {
+                const countryCodeKey = key.toLowerCase();
+                const countryName = country.name.toLowerCase();
+                const countryCode = country.code.toLowerCase();
+                
+                return countryCodeKey.includes(searchTerm) || 
+                       countryName.includes(searchTerm) || 
+                       countryCode.includes(searchTerm) ||
+                       (country.alt_spellings && country.alt_spellings.some(spelling => spelling.toLowerCase().includes(searchTerm)));
+            });
+
+            if (foundCountries.length === 1) {
+                displayCountry(foundCountries[0][0]);
+            } else if (foundCountries.length > 1) {
+                displayMultipleResults(foundCountries.map(entry => entry[0]));
+            } else {
+                result.innerHTML = `
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+                        <div class="text-red-600 text-xl mb-2">❌</div>
+                        <h3 class="text-red-800 font-semibold mb-2">Nem található ország</h3>
+                        <p class="text-red-600">A "${searchTerm}" nevű ország nem található az adatbázisban.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function displayMultipleResults(countryKeys) {
+            const resultDiv = document.getElementById('result');
+            let html = `<h3 class="text-xl font-semibold mb-4 text-gray-800">Több találat (${countryKeys.length} db). Kattints a zászlóra a részletekért:</h3>`;
+            html += '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">';
+            countryKeys.forEach(countryKey => {
+                const country = countries[countryKey];
+                html += `
+                    <div class="country-card bg-white p-4 rounded-lg shadow-md cursor-pointer hover:shadow-xl transition-shadow" onclick="displayCountry('${countryKey}')">
+                        <div class="flex items-center">
+                            <img src="${country.officialFlag}" alt="${country.name} flag" class="w-12 h-8 object-cover rounded-md mr-4">
+                            <span class="font-semibold text-lg text-gray-700">${country.name}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            resultDiv.innerHTML = html;
+        }
+
+        // Kontinens országainak megjelenítése
+        function displayContinentCountries(continentName) {
+            const continentCountries = Object.values(countries)
+                .filter(c => c.continent === continentName)
+                .sort((a, b) => a.name.localeCompare(b.name, 'hu'));
+            const continent = continents[continentName];
+            
+            result.innerHTML = `
+                <div class="bg-white rounded-lg shadow-xl p-8">
+                    <div class="text-center mb-8">
+                        <div class="text-8xl mb-4">${continent.emoji}</div>
+                        <h2 class="text-3xl font-bold text-${continent.color}-800 mb-2">${continent.name}</h2>
+                        <p class="text-gray-600">${continent.description}</p>
+                        <div class="text-${continent.color}-700 font-medium mt-2">${continentCountries.length} ország</div>
+                    </div>
+
+                    <!-- Nézetváltó -->
+                    <div class="flex justify-end items-center mb-4">
+                        <span class="text-sm font-semibold text-gray-600 mr-3">Nézet:</span>
+                        <button id="gridViewBtn" class="px-3 py-1 rounded-l-md border border-gray-300">Rács</button>
+                        <button id="listViewBtn" class="px-3 py-1 rounded-r-md border border-gray-300 border-l-0">Lista</button>
+                    </div>
+
+                    <div id="continentCountriesContainer">
+                        <!-- Az országok listája itt jelenik meg -->
+                    </div>
+                </div>
+            `;
+
+            const renderCountries = () => {
+                const container = document.getElementById('continentCountriesContainer');
+                if (!container) return;
+
+                if (currentView === 'grid') {
+                    container.innerHTML = `
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            ${continentCountries.map(country => `
+                                <div class="bg-${continent.color}-50 border border-${continent.color}-200 rounded-lg p-4 cursor-pointer hover:shadow-md transition-all hover:border-${continent.color}-400" onclick="displayCountry('${country.code}')">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="text-3xl">${country.flag}</div>
+                                        <div>
+                                            <div class="font-semibold text-gray-800">${country.name}</div>
+                                            <div class="text-sm text-gray-500">${country.capital}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>`;
+                } else { // list view
+                    container.innerHTML = `
+                        <div class="space-y-2">
+                            ${continentCountries.map(country => `
+                                <div class="bg-white border border-gray-200 rounded-lg p-3 cursor-pointer hover:shadow-sm hover:border-indigo-300 transition-all flex items-center justify-between" onclick="displayCountry('${country.code}')">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="text-2xl">${country.flag}</div>
+                                        <div class="font-medium text-gray-800">${country.name}</div>
+                                    </div>
+                                    <div class="text-sm text-gray-500">${country.capital}</div>
+                                </div>
+                            `).join('')}
+                        </div>`;
+                }
+                updateViewButtons();
+            };
+
+            const updateViewButtons = () => {
+                const gridBtn = document.getElementById('gridViewBtn');
+                const listBtn = document.getElementById('listViewBtn');
+                gridBtn.classList.toggle('bg-indigo-600', currentView === 'grid');
+                gridBtn.classList.toggle('text-white', currentView === 'grid');
+                listBtn.classList.toggle('bg-indigo-600', currentView === 'list');
+                listBtn.classList.toggle('text-white', currentView === 'list');
+            };
+
+            renderCountries();
+
+            document.getElementById('gridViewBtn').addEventListener('click', () => { currentView = 'grid'; renderCountries(); });
+            document.getElementById('listViewBtn').addEventListener('click', () => { currentView = 'list'; renderCountries(); });
+        }
+
+        // Ország adatainak megjelenítése
+        async function displayCountry(countryKey) {
+            const country = countries[countryKey];
+            if (!country) {
+                result.innerHTML = `
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+                        <div class="text-red-600 text-xl mb-2">❌</div>
+                        <h3 class="text-red-800 font-semibold mb-2">Hiba történt</h3>
+                        <p class="text-red-600">Az ország adatai nem találhatók.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Térkép URL generálása kiemeléssel
+            let mapSrc = country.mapUrl; // Alapértelmezett URL
+            if (country.osmRelationId) {
+                // A bbox paramétert kinyerjük a meglévő URL-ből
+                const bboxMatch = country.mapUrl.match(/bbox=([^&]+)/);
+                const bboxParam = bboxMatch ? `?bbox=${bboxMatch[1]}` : '';
+                mapSrc = `https://www.openstreetmap.org/export/embed.html${bboxParam}&layer=mapnik&marker=none&relation=${country.osmRelationId}`;
+            }
+
+            // Placeholder for weather while loading
+            const weatherPlaceholder = `
+                <span id="weather-info" class="text-sm text-gray-500">Hőmérséklet betöltése...</span>
+            `;
+
+            // Determine where to render the result
+            let targetElement = result;
+            // If flag search is active, render inside its container
+            if (!flagSearch.classList.contains('hidden')) {
+                targetElement = flagResult;
+            }
+
+            targetElement.innerHTML = `
+                <div class="country-card bg-white rounded-lg shadow-xl p-8">
+                    <div class="flex flex-col md:flex-row items-center md:items-start mb-6">
+                        <div class="flex-shrink-0 mb-4 md:mb-0 md:mr-6">
+                            ${country.officialFlag ? 
+                                `<img src="${country.officialFlag}" alt="${country.name} zászlaja" class="w-32 h-20 rounded-lg shadow-md border object-cover">` 
+                                : `<div class="text-6xl">${country.flag}</div>`
+                            }
+                        </div>
+                        <div class="text-center md:text-left">
+                            <h2 class="text-4xl font-bold text-indigo-800 mb-2">${country.name}</h2>
+                            <p class="text-gray-600 text-lg">${country.capital} főváros</p>
+                            <p class="text-gray-500 text-sm">(${country.code}) ${weatherPlaceholder}</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div class="bg-blue-50 p-4 rounded-lg shadow-sm">
+                            <h3 class="font-semibold text-blue-700 mb-2">Általános információk</h3>
+                            <ul class="text-gray-700 text-sm space-y-1">
+                                <li><strong>Kontinens:</strong> ${country.continent} ${continents[country.continent].emoji}</li>
+                                <li><strong>Népesség:</strong> ${country.population}</li>
+                                <li><strong>Terület:</strong> ${country.area}</li>
+                                <li><strong>Hivatalos nyelv:</strong> ${country.language}</li>
+                                <li><strong>Pénznem:</strong> ${country.currency}</li>
+                                <li><strong>Hívószám:</strong> ${country.callingCode}</li>
+                            </ul>
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-lg shadow-sm">
+                            <h3 class="font-semibold text-green-700 mb-2">Főbb látványosságok</h3>
+                            <ul class="text-sm space-y-1">
+                                ${country.attractions.map(attraction => `
+                                    <li>
+                                        <a href="https://www.google.com/search?q=${encodeURIComponent(attraction + ' ' + country.name)}" target="_blank" rel="noopener noreferrer" class="text-green-800 hover:text-green-900 hover:underline transition-colors">
+                                            ${attraction}
+                                        </a>
+                                    </li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <h3 class="font-semibold text-indigo-700 mb-2">Elhelyezkedés a térképen</h3>
+                        <div class="aspect-w-16 aspect-h-9">
+                            <iframe width="100%" height="300" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="${mapSrc}" style="border:1px solid black; border-radius: 8px;"></iframe>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Fetch and display weather
+            try {
+                // 1. Get coordinates for the capital city
+                const geoResponse = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(country.capital)}&count=1&language=hu&format=json`);
+                const geoData = await geoResponse.json();
+
+                if (geoData.results && geoData.results.length > 0) {
+                    const { latitude, longitude } = geoData.results[0];
+
+                    // 2. Get weather for the coordinates
+                    const weatherResponse = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
+                    const weatherData = await weatherResponse.json();
+
+                    const temp = weatherData.current_weather.temperature;
+                    const weatherInfo = document.getElementById('weather-info');
+                    if (weatherInfo) {
+                        weatherInfo.innerHTML = `| 🌡️ Aktuális hőmérséklet: <strong>${temp}°C</strong>`;
+                    }
+                } else {
+                    throw new Error('Nem található koordináta.');
+                }
+            } catch (error) {
+                document.getElementById('weather-info').textContent = '| Hőmérsékletadat nem elérhető.';
+            }
+        }
+
+        // Eseménykezelők
+        searchBtn.addEventListener('click', searchCountry);
+        countryInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchCountry();
+            }
+        });
+
+        // Kezdeti állapot beállítása
+        showSearchMode('name');
+
+        // Service Worker regisztrálása
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => console.log('Service Worker sikeresen regisztrálva: ', registration.scope))
+                    .catch(err => console.log('Service Worker regisztráció sikertelen: ', err));
+            });
+        }
+    </script>
+</body>
+</html>

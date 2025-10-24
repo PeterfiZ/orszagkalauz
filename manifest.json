@@ -1,0 +1,28 @@
+{
+    "name": "A világ országai",
+    "short_name": "Országok",
+    "description": "Fedezd fel a világ országait név, zászló vagy kontinens alapján.",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "#f0f5ff",
+    "theme_color": "#4f46e5",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "icons/globe-192x192.png",
+            "type": "image/png",
+            "sizes": "192x192"
+        },
+        {
+            "src": "icons/globe-512x512.png",
+            "type": "image/png",
+            "sizes": "512x512"
+        },
+        {
+            "src": "icons/globe-512x512-maskable.png",
+            "type": "image/png",
+            "sizes": "512x512",
+            "purpose": "any maskable"
+        }
+    ]
+}
