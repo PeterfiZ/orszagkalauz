@@ -13,7 +13,7 @@ const continents = {
     },
       "Közép-Amerika": {
         "name": "Közép-Amerika",
-        "emoji": "🏝️",
+        "emoji": "🌋",
         "description": "A közép-amerikai és karibi országok",
         "color": "pink"
     },
@@ -25,7 +25,7 @@ const continents = {
     },
     "Afrika": {
         "name": "Afrika",
-        "emoji": "🐘",
+        "emoji": "🦒",
         "description": "Az afrikai kontinens országai",
         "color": "red"
     },
@@ -37,7 +37,7 @@ const continents = {
     },
     "Óceánia": {
         "name": "Óceánia",
-        "emoji": "🏝️",
+        "emoji": "🦘",
         "description": "Az óceániai kontinens országai",
         "color": "teal"
     }

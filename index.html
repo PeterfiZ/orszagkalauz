@@ -81,7 +81,12 @@
     </div>
 
     <script src="./continents.js"></script>
-    <script src="./countries.js"></script>
+    <script src="./Europa.js"></script>
+    <script src="./Afrika.js"></script>
+    <script src="./Azsia.js"></script>
+    <script src="./Oceánia.js"></script>
+    <script src="./Amerika.js"></script>
+
     <script>
         let currentView = 'grid'; // 'grid' vagy 'list'
         // DOM elemek
@@ -97,6 +102,15 @@
         const flagGrid = document.getElementById('flagGrid');
         const continentGrid = document.getElementById('continentGrid');
         const result = document.getElementById('result');
+
+        // Egyesítjük az összes kontinens-specifikus országadatot egyetlen 'countries' objektumba
+        const countries = {
+            ...Europa,
+            ...Afrika,
+            ...Azsia,
+            ...Oceánia,
+            ...America
+        };
 
         // Keresési mód váltás
         nameSearchBtn.addEventListener('click', () => {
